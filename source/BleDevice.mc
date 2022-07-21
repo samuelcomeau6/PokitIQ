@@ -8,10 +8,10 @@ const DEVICE_NAME_Z = "Pro";
 const MM_SERVICE = Ble.stringToUuid("e7481d2f-5781-442e-bb9a-fd4e3441dadc");
 const MM_SET_CHAR = Ble.stringToUuid("53dc9a7a-bc19-4280-b76b-002d0e23b078");
 const MM_READINGS_CHAR = Ble.stringToUuid("047d3559-8bee-423a-b229-4417fa603b90");
-//hidden const LBS_BUTTON_DESC = Ble.cccdUuid();
+const CCCD = Ble.cccdUuid();
 
 class BleDevice extends Ble.BleDelegate {
-	const UPDATE_INTERVAL = 250;
+	const UPDATE_INTERVAL = 100;
 	var scanning = false;
 	var device = null;
 	var reading = 0;
@@ -119,33 +119,62 @@ class BleDevice extends Ble.BleDelegate {
 	function onCharacteristicRead(ch, status, value) {
 		debug("char read " + ch.getUuid() + " " + value);
 		if (ch.getUuid().equals(MM_READINGS_CHAR)) {
-			debug("onCharacteristicChanged: about to update");
+			debug("onCharacteristicRead: about to update");
 			if(value[5]==0){
 				mode=0;
 			}
 			reading = value.decodeNumber(NUMBER_FORMAT_FLOAT,{:offset => 1});
 			debug("onCharacteristicRead: mode=" + mode);
-			debug("onCharacteristicRead: old reading is " + reading);
 			startReading(mode);
 		}
 	}
-
-	function read(){
+	function onCharacteristicChanged(ch, value){
+		debug("char change " + ch.getUuid() + " " + value);
+		if (ch.getUuid().equals(MM_READINGS_CHAR)) {
+			debug("onCharacteristicChanged: about to update");
+			if(value[5]==0){
+				mode=0;
+			}
+			reading = value.decodeNumber(NUMBER_FORMAT_FLOAT,{:offset => 1});
+		}
+	}
+	function notify(){
 		var service;
 		var ch;
-		debug("setReadingNotifications: start");
+		var cd;
+		debug("notify(): start");
 		if (device == null) {
-			debug("setReadingNotifications: not connected");
+			debug("notify(): not connected");
 			return;
 		}
 		service = device.getService(MM_SERVICE);
 		ch = service.getCharacteristic(MM_READINGS_CHAR);
-		debug("setReadingNotifications: requesting read");
+		cd = ch.getDescriptor(CCCD);
+		try{
+			cd.requestWrite([0x01,0x00]b);
+			debug("notify(): notify requested");
+		} catch (ex){
+			debug("notify(): notify request failed:"+ex.getErrorMessage());
+		}
+
+	}
+	function read(){
+		var service;
+		var ch;
+		var cd;
+		debug("read(): start");
+		if (device == null) {
+			debug("read: not connected");
+			return;
+		}
+		service = device.getService(MM_SERVICE);
+		ch = service.getCharacteristic(MM_READINGS_CHAR);
+		debug("read(): requesting read");
 		try{
 			ch.requestRead();
-			debug("setReadingNotifications: read requested");
+			debug("read(): read requested");
 		} catch (ex){
-			debug("setReadingNotifications: read request failed:"+ex.getErrorMessage());
+			debug("read(): read request failed:"+ex.getErrorMessage());
 			//ex.printStackTrace();
 			//debug("");
 		}
@@ -167,7 +196,7 @@ class BleDevice extends Ble.BleDelegate {
 				:uuid => MM_SET_CHAR,
                         }, {
 				:uuid => MM_READINGS_CHAR,
-				//:descriptors => [LBS_BUTTON_DESC],
+				:descriptors => [CCCD],
 			}]
 		};
 
@@ -191,7 +220,7 @@ class BleDevice extends Ble.BleDelegate {
 			//setButtonNotifications(1);
 			debug("onConnectedStateChanged: startReading(voltage)");
 			startReading(mode);
-			debug("onConnectedStateChanged: setReadingNotifications()");
+			debug("onConnectedStateChanged: read()()");
 			read();
 		} else {
 			self.device = null;

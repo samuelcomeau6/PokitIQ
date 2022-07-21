@@ -27,7 +27,7 @@ class PokitView extends WatchUi.View {
         counter = 0;
         bleDevice = device;
         var myTimer = new Timer.Timer();
-        myTimer.start(method(:timerCallback), 100, true);
+        myTimer.start(method(:timerCallback), 1000, true);
     }
 
     // Load your resources here
