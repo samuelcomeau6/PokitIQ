@@ -1,7 +1,8 @@
 # PokitIQ
 Pokit meter app for Garmin watch connect IQ
 
-- Step 1: Side load the app (it may or may not work for you right away) https://developer.garmin.com/connect-iq/connect-iq-basics/your-first-app/#yourfirstconnectiqapp:~:text=complete%20the%20import-,Side%20Loading%20an%20App,-The%20Monkey%20C
+- Step 1: Side load the app https://github.com/samuelcomeau6/PokitIQ/blob/main/Pokit/bin/Pokit.prg
+(it may or may not work for you right away) https://developer.garmin.com/connect-iq/connect-iq-basics/your-first-app/#yourfirstconnectiqapp:~:text=complete%20the%20import-,Side%20Loading%20an%20App,-The%20Monkey%20C
 - Step 2: Start the app and if you get Vac skip ahead to step 5
 - Step 3: You are unlucky. Download VS code and the Garmin SDK https://developer.garmin.com/connect-iq/connect-iq-basics/getting-started/
 - Step 4: Following the instructions on Garmin's website build and sideload the app
