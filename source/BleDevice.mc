@@ -181,6 +181,10 @@ class BleDevice extends Ble.BleDelegate {
 
 	}
 	function getReading(){
+		if(mode==MODE_TEMP){
+			var temp = reading*1.8+32.0;
+			return temp;
+		}
 		return reading;
 	}
 
