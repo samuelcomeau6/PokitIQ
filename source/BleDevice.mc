@@ -11,14 +11,17 @@ const MM_READINGS_CHAR = Ble.stringToUuid("047d3559-8bee-423a-b229-4417fa603b90"
 //hidden const LBS_BUTTON_DESC = Ble.cccdUuid();
 
 class BleDevice extends Ble.BleDelegate {
+	const UPDATE_INTERVAL = 250;
 	var scanning = false;
 	var device = null;
 	var reading = 0;
 	var scan_delay = 1;
-	var parameter = "Vac";
+	enum {MODE_IDLE=0, MODE_VDC=1, MODE_VAC, MODE_IDC, MODE_IAC, MODE_RESIST, MODE_DIODE, MODE_CONT, MODE_TEMP}
+	enum {RANGE_AUTO=255}
+	var mode = MODE_VAC;
 
 	hidden function debug(str) {
-		//System.println("[ble] " + str);
+		System.println("[ble] " + str);
 	}
 
 	function initialize() {
@@ -30,67 +33,75 @@ class BleDevice extends Ble.BleDelegate {
 		return (device!=null);
 	}
 
-	function setParameter(p){
-		parameter = p;
+	function setMode(p){
+		mode = p;
 	}
 
-	function getParameter(){
-		return parameter;
+	function getMode(){
+		return mode;
+	}
+	function getModeLabel(){
+		switch(mode){
+			case 0:
+				return "Error/Idle";
+			case 1:
+				return "DC Voltage";
+			case 2:
+				return "AC Voltage";
+			case 3:
+				return "DC Current";
+			case 4:
+				return "AC Current";
+			case 5:
+				return "Resistance";
+			case 6:
+				return "Diode";
+			case 7:
+				return "Continuity";
+			case 8:
+				return "Temperature";
+			default:
+				return "Pokit";
+		}		
 	}
 
 	function nextMode(){
-		switch(parameter){
-			case "Vdc":
-				parameter = "Vac";
-				break;
-			case "Vac":
-				parameter = "temperature";
-				break;
-			case "temperature":
-				parameter = "Vdc";
-				break;
-			default:
-				parameter = "Vac";
-				break;
+		mode++;
+		if(mode > 8 || mode < 1){
+			mode=1;
+		}
+	}
+	function previousMode(){
+		mode--;
+		if(mode > 8 || mode < 1){
+			mode=8;
 		}
 	}
 
-	function startReading(parameter){
+	function startReading(mode){
 		//Writes to device
-		debug("startReading:begin: "+parameter);
+		debug("startReading:begin: "+mode);
 		var service;
 		var ch;
 		var status;
 		var value = []b;
 		service = device.getService(MM_SERVICE);
 		ch = service.getCharacteristic(MM_SET_CHAR);
-		switch(parameter){
-			case "Vdc":
-				value.add(1);//DC voltage
-				value.add(255);//Autorange
+		switch(mode){
+			case MODE_VDC:
+			case MODE_VAC:
+			case MODE_IAC:
+			case MODE_IDC:
+			case MODE_RESIST:
+			case MODE_DIODE:
+			case MODE_CONT:
+			case MODE_TEMP:
+				value.add(mode);
+				value.add(RANGE_AUTO);//Autorange
 				value.add(0);//Interval 1
 				value.add(0);//Interval 2
 				value.add(0);//Interval 3
-				value.add(50);//Interval 4
-				debug("startReading: about to write: "+value);
-			break;
-			case "Vac":
-				value.add(2);//AC voltage
-				value.add(255);//Autorange
-				value.add(0);//Interval 1
-				value.add(0);//Interval 2
-				value.add(0);//Interval 3
-				value.add(50);//Interval 4
-				debug("startReading: about to write: "+value);
-			break;
-			case "temperature":
-				//Temp
-				value.add(8);//Temp
-				value.add(0);//NA
-				value.add(0);//Interval 1
-				value.add(0);//Interval 2
-				value.add(3);//Interval 3
-				value.add(240);//Interval 4
+				value.add(UPDATE_INTERVAL);//Interval 4
 				debug("startReading: about to write: "+value);
 			break;
 		}
@@ -109,18 +120,13 @@ class BleDevice extends Ble.BleDelegate {
 		debug("char read " + ch.getUuid() + " " + value);
 		if (ch.getUuid().equals(MM_READINGS_CHAR)) {
 			debug("onCharacteristicChanged: about to update");
-			//reading = value[5];
 			if(value[5]==0){
-				startReading(parameter);
+				mode=0;
 			}
 			reading = value.decodeNumber(NUMBER_FORMAT_FLOAT,{:offset => 1});
-			debug("onCharacteristicRead: parameter=" + parameter);
+			debug("onCharacteristicRead: mode=" + mode);
 			debug("onCharacteristicRead: old reading is " + reading);
-			if(parameter.equals("temperature")){
-				reading = reading*1.8+32.0;
-				debug("onCharacteristicRead: new reading is " + reading);
-			}
-			startReading(parameter);
+			startReading(mode);
 		}
 	}
 
@@ -184,7 +190,7 @@ class BleDevice extends Ble.BleDelegate {
 			//TODO put the initialization code here
 			//setButtonNotifications(1);
 			debug("onConnectedStateChanged: startReading(voltage)");
-			startReading(parameter);
+			startReading(mode);
 			debug("onConnectedStateChanged: setReadingNotifications()");
 			read();
 		} else {

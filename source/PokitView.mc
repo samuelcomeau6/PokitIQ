@@ -7,7 +7,7 @@ using Toybox.BluetoothLowEnergy as Ble;
 class PokitView extends WatchUi.View {
     var bleDevice;
     var reading;
-    var reading_parameter="Vac";
+    var reading_mode="Pokit";
     var modeText;
     var readText;
     var counter;
@@ -18,7 +18,7 @@ class PokitView extends WatchUi.View {
         //counter++;
         //reading = counter.toString();
         reading = compute().toString();
-        reading_parameter = bleDevice.getParameter();
+        reading_mode = bleDevice.getModeLabel();
     }
 
     function initialize(device) {
@@ -61,7 +61,7 @@ class PokitView extends WatchUi.View {
         // Call the parent onUpdate function to redraw the layout
         View.onUpdate(dc);
         readText.setText(reading);
-        modeText.setText(reading_parameter);
+        modeText.setText(reading_mode);
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_BLACK);
         dc.clear();
         modeText.draw(dc);

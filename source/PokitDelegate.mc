@@ -16,5 +16,8 @@ class PokitDelegate extends WatchUi.BehaviorDelegate {
     function onNextPage(){
         bleDevice.nextMode();
     }
+    function onPreviousPage(){
+        bleDevice.previousMode();
+    }
 
 }
