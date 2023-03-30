@@ -1,8 +1,6 @@
 # PokitIQ
 Pokit meter app for Garmin watch connect IQ
 
-## Notice this project is out of date and no longer reads AC voltage correctly. Serious bodily harm or death may result from the use of this application. I will remove this banner when things have been corrected ##
-
 - Step 1: Side load the app https://github.com/samuelcomeau6/PokitIQ/blob/main/Pokit/bin/PokitIQ.prg
 (it may or may not work for you right away) https://developer.garmin.com/connect-iq/connect-iq-basics/your-first-app/#yourfirstconnectiqapp:~:text=complete%20the%20import-,Side%20Loading%20an%20App,-The%20Monkey%20C
 - Step 2: Start the app and it shows a measurement mode and a status, skip ahead to step 5
